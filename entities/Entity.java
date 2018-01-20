@@ -451,7 +451,7 @@ public abstract class Entity extends Rectangle{
         if(highSightHeight == lowSightHeight){
             newSightHeight  = highSightHeight ;
         }else{
-            newSightHeight  = new Random().nextInt(highSightHeight -lowSightHeight )+lowSightHeight ;
+            newSightHeight  = new Random().nextInt(highSightHeight -(lowSightHeight/2) )+lowSightHeight ;
         }
         
         //sight width
@@ -461,7 +461,7 @@ public abstract class Entity extends Rectangle{
         if(highSightWidth == lowSightWidth){
             newSightWidth = highSightWidth;
         }else{
-            newSightWidth = new Random().nextInt(highSightWidth-lowSightWidth)+lowSightWidth;
+            newSightWidth = new Random().nextInt(highSightWidth-(lowSightWidth/2))+lowSightWidth;
         }
         //make new entity and kill off parents
         
@@ -473,7 +473,7 @@ public abstract class Entity extends Rectangle{
         int yy = (this.y + b.y)/2;
         
         Entity newEnt = new Bot(screen,xx,yy,newWidth,newHeight,newColor,
-                newSpeed,newSightWidth,newSightHeight);
+                newSpeed,newSightHeight,newSightWidth);
         
         return screen.addBot((Bot) newEnt);
     }

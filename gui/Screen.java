@@ -7,9 +7,7 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.awt.Image;
 import java.awt.RenderingHints;
-import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
@@ -17,8 +15,8 @@ import java.awt.event.WindowEvent;
 import java.awt.image.BufferStrategy;
 import java.io.Serializable;
 import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
 import javax.swing.JFrame;
@@ -50,11 +48,11 @@ public class Screen extends JPanel implements ActionListener, Serializable{
     private volatile  boolean mainRunning;
     
     //FPS
-    public static final int targetFPS = 30;
+    public static final int TARGETFPS = 30;
     
     public Screen(){
-        entities = new LinkedList<>();
-        deadEntities = new LinkedList<>();
+        entities = new ArrayList<>();
+        deadEntities = new ArrayList<>();
         
         SwingUtilities.invokeLater(new Runnable(){
             @Override
@@ -64,8 +62,8 @@ public class Screen extends JPanel implements ActionListener, Serializable{
         });
     }
     public Screen(Dimension size){
-        entities = new LinkedList<>();
-        deadEntities = new LinkedList<>();
+        entities = new ArrayList<>();
+        deadEntities = new ArrayList<>();
         SSIZE = size;
         
         SwingUtilities.invokeLater(new Runnable(){
@@ -275,7 +273,7 @@ public class Screen extends JPanel implements ActionListener, Serializable{
         });
         
         for(int a = 0; a < 1; a++){//generations
-            for(int x = 0; x < 4; x++){//entities
+            for(int x = 0; x < 8; x++){//entities
                 Bot bot = (Bot) screen.addBot();
                 bot.setRandColor();
                 bot.setRandSpeed();

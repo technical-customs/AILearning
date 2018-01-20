@@ -30,13 +30,14 @@ public class Bot extends Entity{
         
             while(entityIter.hasNext()){
                 Entity entity = entityIter.next();
-
+                
+                
                 if(this.equals(entity)){
                     continue;
                 }
                 
                 if(this.getSightLine().intersects(entity)){
-                    //freeze for a little maybe
+                    //approach and mate
                 }
             }
         }
@@ -84,6 +85,9 @@ public class Bot extends Entity{
             Entity entity = entityIter.next();
             
             if(this.equals(entity)){
+                continue;
+            }
+            if(Screen.deadEntities.contains(entity)){
                 continue;
             }
             
