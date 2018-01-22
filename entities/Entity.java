@@ -3,6 +3,7 @@ package entities;
 import gui.Screen;
 import java.awt.Color;
 import java.awt.Graphics2D;
+import java.awt.Point;
 import java.awt.Rectangle;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -10,11 +11,17 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
+import java.util.concurrent.CountDownLatch;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import objects.Boundary;
 
 public abstract class Entity extends Rectangle{
     private volatile List<Entity> entities = new ArrayList<>();
     private volatile List<Entity> deadEntities = new ArrayList<>();
+    
     public volatile Set<Entity> spottedents = new HashSet<>();
+    public volatile Set<Boundary> spottedbounds = new HashSet<>();
    
     private volatile boolean dead = false, collided = false;
     private volatile Color color = Color.yellow;
@@ -24,6 +31,7 @@ public abstract class Entity extends Rectangle{
     
     private int sMinD = 10, sMaxD = 50, sightD = new Random().nextInt(sMaxD) + sMinD;
     private int sMinP = 15, sMaxP = 75, sightP = new Random().nextInt(sMaxP) + sMinP;
+    public int avoidanceDistance;
     final private SightLine sightline;
     protected volatile boolean spotted;
     
@@ -43,12 +51,14 @@ public abstract class Entity extends Rectangle{
             this.entity = entity;
             dist = sightD;
             periph = sightP;
+            entity.avoidanceDistance = new Random().nextInt(dist)+2;
         }
         public SightLine(Entity entity, int dist, int periph){
             super();
             this.entity = entity;
             this.dist = dist;
             this.periph = periph;
+            entity.avoidanceDistance = new Random().nextInt(dist)+2;
         }
         
         public void update(){
@@ -213,6 +223,32 @@ public abstract class Entity extends Rectangle{
     }
     
     //Movement
+    public void moveTo(int x, int y){
+        //get amount of space needed to move
+        stop();
+        
+        int xa = x-this.x;
+        int axa = xa/Math.abs(xa);
+        int ax = Math.abs(xa);
+        
+        int ya = y-this.y;
+        int aya = ya/Math.abs(ya);
+        int ay = Math.abs(ya);
+        
+        
+        new Thread(new Runnable(){
+            @Override
+            public void run(){
+                stepX(axa,ax);
+                stepY(aya,ay);
+
+                stepY(-1,1);
+                stepY(1,1);
+            }
+        }).start();
+        
+        
+    }
     public void stepX(int dir, int steps){
         try{
             double xPos = this.x;
@@ -227,7 +263,6 @@ public abstract class Entity extends Rectangle{
                             collided = false;
                             return;
                         }
-                        
                         this.x += 1* speed;
                         Thread.sleep(30);
                         
@@ -246,6 +281,7 @@ public abstract class Entity extends Rectangle{
                             collided = false;
                             return;
                         }
+                        
                         this.x -= 1* speed;
                         Thread.sleep(30);
                         
@@ -265,22 +301,6 @@ public abstract class Entity extends Rectangle{
             
             if(dir != 0){
                 if(dir > 0){
-                    n = true;
-                    s = false;
-                    e = false;
-                    w = false;
-                    while(this.y > yPos-steps){
-                        if(collided){
-                            collided = false;
-                            return;
-                        }
-                        this.y -= 1* speed;
-                        Thread.sleep(30);
-                        
-                    }
-                }
-                if(dir < 0){
-                    
                     n = false;
                     s = true;
                     e = false;
@@ -291,6 +311,22 @@ public abstract class Entity extends Rectangle{
                             return;
                         }
                         this.y += 1* speed;
+                        Thread.sleep(30);
+                        
+                    }
+                }
+                if(dir < 0){
+                    
+                    n = true;
+                    s = false;
+                    e = false;
+                    w = false;
+                    while(this.y > yPos-steps){
+                        if(collided){
+                            collided = false;
+                            return;
+                        }
+                        this.y -= 1* speed;
                         Thread.sleep(30);
                         
                         
@@ -323,8 +359,10 @@ public abstract class Entity extends Rectangle{
         this.y += yDir * speed;
     }
     public void stop(){
+        collided = true;
         setXDir(0);
         setYDir(0);
+        collided = false;
     }
     
     //Collisions
@@ -370,19 +408,47 @@ public abstract class Entity extends Rectangle{
     }
     
     //mutate
+    public boolean partner(Entity b){
+        int mx = Math.abs( (b.x + x)/2 );
+        int my = Math.abs( (b.y + y)/2 );
+        
+        final CountDownLatch latch = new CountDownLatch(1);
+        new Thread(new Runnable(){
+            @Override
+            public void run(){
+                moveTo(mx-10,my);
+                b.moveTo(mx+10,my);
+                
+                try {
+                    Thread.sleep(5000);
+                } catch (InterruptedException ex) {
+                    Logger.getLogger(Entity.class.getName()).log(Level.SEVERE, null, ex);
+                }
+                latch.countDown();
+            }
+        }).start();
+        
+        try {
+            latch.await();
+            
+        } catch (InterruptedException ex) {
+            return false;
+        }
+        return false;
+    }
     public Entity breedEntities(Entity b){
         //create different traits and make entity
         //width
         int highWidth = (this.width >= b.width)? this.width: b.width;
         int lowWidth = (this.width < b.width)? this.width: b.width;
         int newWidth;
-        
+
         if(highWidth == lowWidth){
             newWidth = highWidth;
         }else{
             newWidth = new Random().nextInt(highWidth-lowWidth)+lowWidth;
         }
-        
+
         //height
         int highHeight = (this.height >= b.height)? this.height: b.height;
         int lowHeight = (this.height < b.height)? this.height: b.height;
@@ -392,11 +458,11 @@ public abstract class Entity extends Rectangle{
         }else{
             newHeight = new Random().nextInt(highHeight-lowHeight)+lowHeight;
         }
-        
+
         //color - get random color combo from parents
         int highRed = (this.getColor().getRed() >= b.getColor().getRed())? 
                 this.getColor().getRed(): b.getColor().getRed();
-        
+
         int lowRed = (this.getColor().getRed() < b.getColor().getRed())? 
                 this.getColor().getRed(): b.getColor().getRed();
         int nr;
@@ -405,19 +471,19 @@ public abstract class Entity extends Rectangle{
         }else{
             nr = new Random().nextInt(highRed-lowRed)+lowRed;
         }
-        
+
         int highGreen = (this.getColor().getGreen() >= b.getColor().getGreen())? 
                 this.getColor().getGreen(): b.getColor().getGreen();
         int lowGreen = (this.getColor().getGreen() < b.getColor().getGreen())? 
                 this.getColor().getGreen(): b.getColor().getGreen();
         int ng;
-        
+
         if(highGreen == lowGreen){
             ng = highGreen;
         }else{
             ng = new Random().nextInt(highGreen-lowGreen)+lowGreen;
         }
-        
+
         int highBlue = (this.getColor().getBlue() >= b.getColor().getBlue())? 
                 this.getColor().getBlue(): b.getColor().getBlue();
         int lowBlue = (this.getColor().getBlue() < b.getColor().getBlue())? 
@@ -429,21 +495,21 @@ public abstract class Entity extends Rectangle{
             nb = new Random().nextInt(highBlue-lowBlue)+lowBlue;
         }
         Color newColor = new Color(nr,ng,nb);
-        
+
         //speed - get a random speed between the two parents speeds high and low
         int highSpeed = (this.speed >= b.speed)? this.speed: b.speed;
         int lowSpeed = (this.speed < b.speed)? this.speed: b.speed;
         int newSpeed;
-        
+
         if(highSpeed == lowSpeed){
             newSpeed = highSpeed;
         }else{
             newSpeed = new Random().nextInt(highSpeed-lowSpeed)+lowSpeed;
         }
-        
+
         SightLine tsl = this.getSightLine();
         SightLine esl = b.getSightLine();
-        
+
         //sight height
         int highSightHeight = (tsl.height >= esl.height)? tsl.height: esl.height;
         int lowSightHeight = (tsl.height < esl.height)? tsl.height: esl.height;
@@ -453,7 +519,7 @@ public abstract class Entity extends Rectangle{
         }else{
             newSightHeight  = new Random().nextInt(highSightHeight -(lowSightHeight/2) )+lowSightHeight ;
         }
-        
+
         //sight width
         int highSightWidth = (tsl.width >= esl.width)? tsl.width: esl.width;
         int lowSightWidth = (tsl.width < esl.width)? tsl.width: esl.width;
@@ -464,18 +530,20 @@ public abstract class Entity extends Rectangle{
             newSightWidth = new Random().nextInt(highSightWidth-(lowSightWidth/2))+lowSightWidth;
         }
         //make new entity and kill off parents
-        
-        
+
+
         this.dead = true;
         b.dead = true;
-        
+        Screen.deadEntities.add(this);
+        Screen.deadEntities.add(b);
         int xx = (this.x + b.x)/2;
         int yy = (this.y + b.y)/2;
-        
+
         Entity newEnt = new Bot(screen,xx,yy,newWidth,newHeight,newColor,
                 newSpeed,newSightHeight,newSightWidth);
-        
+
         return screen.addBot((Bot) newEnt);
+
     }
     
     //Draw and Update
@@ -505,6 +573,6 @@ public abstract class Entity extends Rectangle{
     
     @Override
     public String toString(){
-        return "Entity";
+        return "Entity: " + this.getBounds();
     }
 }

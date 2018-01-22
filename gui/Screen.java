@@ -24,6 +24,7 @@ import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
 import javax.swing.Timer;
+import objects.Boundary;
 
 public class Screen extends JPanel implements ActionListener, Serializable{
     private static final long serialVersionUID = 1L;
@@ -32,6 +33,7 @@ public class Screen extends JPanel implements ActionListener, Serializable{
     private volatile boolean moveBots;
     public static volatile List<Entity> entities;
     public static List<Entity> deadEntities;
+    public static List<Boundary> boundaries;
     
     //SIZE
     public final int SWIDTH = 400;
@@ -53,7 +55,7 @@ public class Screen extends JPanel implements ActionListener, Serializable{
     public Screen(){
         entities = new ArrayList<>();
         deadEntities = new ArrayList<>();
-        
+        boundaries = new ArrayList<>();
         SwingUtilities.invokeLater(new Runnable(){
             @Override
             public void run() {
@@ -64,6 +66,7 @@ public class Screen extends JPanel implements ActionListener, Serializable{
     public Screen(Dimension size){
         entities = new ArrayList<>();
         deadEntities = new ArrayList<>();
+        boundaries = new ArrayList<>();
         SSIZE = size;
         
         SwingUtilities.invokeLater(new Runnable(){
@@ -192,9 +195,16 @@ public class Screen extends JPanel implements ActionListener, Serializable{
             Entity entity = entityIter.next();
             
             if(deadEntities.contains(entity)){
+                entityIter.remove();
                 continue;
             }
             entity.drawer(g);
+        }
+        Iterator<Boundary> boundIter = boundaries.iterator();
+        while(boundIter.hasNext()){
+            Boundary bound = boundIter.next();
+            
+            bound.draw(g);
         }
     }
     
@@ -229,7 +239,17 @@ public class Screen extends JPanel implements ActionListener, Serializable{
         entities.add(bot);
         return bot;
     }
+    public synchronized Boundary addBoundary(int x, int y, int width, int height){
+        Boundary bound = new Boundary(x,y,width,height);
+        boundaries.add(bound);
+        return bound;
+    }
+    public synchronized Boundary addBoundary(Boundary bound){
+        boundaries.add(bound);
+        return bound;
+    }
     
+   
     
     private void startBots(){
         if(!mainRunning){
@@ -272,7 +292,17 @@ public class Screen extends JPanel implements ActionListener, Serializable{
             }
         });
         
-        for(int a = 0; a < 1; a++){//generations
+        screen.addBoundary(50, 430, 50, 50);
+        screen.addBoundary(150, 450, 50, 50);
+        screen.addBoundary(250, 350, 50, 50);
+        screen.addBoundary(450, 350, 50, 50);
+        screen.addBoundary(550, 250, 50, 50);
+        screen.addBoundary(650, 350, 50, 50);
+        screen.addBoundary(750, 250, 50, 50);
+        screen.addBoundary(850, 150, 50, 50);
+        
+        for(int a = 0; a < 2; a++){//generations
+            System.out.println("Generation: " + a+1);
             for(int x = 0; x < 8; x++){//entities
                 Bot bot = (Bot) screen.addBot();
                 bot.setRandColor();
@@ -288,6 +318,8 @@ public class Screen extends JPanel implements ActionListener, Serializable{
                 Thread.sleep(1000);
                 for(Entity e: entities){
                     Bot b = (Bot) e;
+                    
+                    
                     b.smartMove();
                     //Thread.sleep(1000);
                 }
@@ -295,7 +327,7 @@ public class Screen extends JPanel implements ActionListener, Serializable{
 
                 Thread.sleep(5000);
                 //get two random entities
-                while(!entities.isEmpty()){
+                while(entities.size() > 1){
 
                     int r1 = 0,r2 = 0;
                     do{
@@ -315,6 +347,7 @@ public class Screen extends JPanel implements ActionListener, Serializable{
                     b2.move = false;
                     
                     Thread.sleep(2000);
+                    b1.partner(b2);
                     Bot bb = (Bot) b1.breedEntities(b2);
                     bb.smartMove();
 
@@ -325,7 +358,10 @@ public class Screen extends JPanel implements ActionListener, Serializable{
                 }
                 System.out.println("END OF SIMULATION. Start with victor lap");
                 Bot b = (Bot)entities.get(0);
-                b.smartMove();
+                b.stop();
+                //b.moveTo(300, 300);
+                //b.smartMove();
+               
 
             }catch(Exception ex){Screen.log("MAIN EX " + ex);}
         }

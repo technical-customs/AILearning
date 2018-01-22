@@ -2,10 +2,13 @@ package entities;
 
 import gui.Screen;
 import java.awt.Color;
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import objects.Boundary;
 
 public class Bot extends Entity{
     public boolean move = true;
@@ -41,6 +44,30 @@ public class Bot extends Entity{
                 }
             }
         }
+    }
+    
+    public void spotBoundary(){
+        //new Thread(new Runnable(){
+            //@Override
+            //public void run(){
+                Iterator<Boundary> boundIter = Screen.boundaries.iterator();
+        
+                while(boundIter.hasNext()){
+                    Boundary b = boundIter.next();
+                    
+                    
+
+                    if(getSightLine().intersects(b)){
+                        spottedbounds.add(b);
+                        //make decision
+                        setCollided(true);
+                    }
+                    if(intersects(b)){
+                        
+                    }
+                }
+            //}
+        //}).start();
     }
     public void smartMove(){
         new Thread(new Runnable(){
@@ -78,6 +105,7 @@ public class Bot extends Entity{
     @Override
     protected void entityCollision(){
         //spotDecision();
+        spotBoundary();
         
         Iterator<Entity> entityIter = Screen.entities.iterator();
         
@@ -92,7 +120,7 @@ public class Bot extends Entity{
             }
             
             if(this.intersects(entity)){
-                setCollided(true);
+                //setCollided(true);
                 
                 //smartMove();
                 if(n){
