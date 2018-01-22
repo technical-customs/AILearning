@@ -301,8 +301,9 @@ public class Screen extends JPanel implements ActionListener, Serializable{
         screen.addBoundary(750, 250, 50, 50);
         screen.addBoundary(850, 150, 50, 50);
         
-        for(int a = 0; a < 2; a++){//generations
-            System.out.println("Generation: " + a+1);
+        
+        for(int a = 0; a < 5; a++){//generations
+            System.out.println("Generation: " + (a+1));
             for(int x = 0; x < 8; x++){//entities
                 Bot bot = (Bot) screen.addBot();
                 bot.setRandColor();
@@ -356,12 +357,6 @@ public class Screen extends JPanel implements ActionListener, Serializable{
                         break;
                     }
                 }
-                System.out.println("END OF SIMULATION. Start with victor lap");
-                Bot b = (Bot)entities.get(0);
-                b.stop();
-                //b.moveTo(300, 300);
-                //b.smartMove();
-               
 
             }catch(Exception ex){Screen.log("MAIN EX " + ex);}
         }
