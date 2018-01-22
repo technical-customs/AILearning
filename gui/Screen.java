@@ -20,6 +20,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
 import javax.swing.JFrame;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
@@ -34,7 +35,7 @@ public class Screen extends JPanel implements ActionListener, Serializable{
     public static volatile List<Entity> entities;
     public static List<Entity> deadEntities;
     public static List<Boundary> boundaries;
-    
+    public int generation = 0;
     //SIZE
     public final int SWIDTH = 400;
     public final int SHEIGHT = SWIDTH / 16 * 9;
@@ -189,6 +190,8 @@ public class Screen extends JPanel implements ActionListener, Serializable{
         g.fillRect(0, 0, SSIZE.width,SSIZE.height);
         g.setRenderingHint(RenderingHints.KEY_ANTIALIASING,RenderingHints.VALUE_ANTIALIAS_ON);
         
+        g.setColor(Color.red);
+        g.drawString("Generation: " + generation, 5, 15);
         //game draws
         Iterator<Entity> entityIter = entities.iterator();
         while(entityIter.hasNext()){
@@ -292,6 +295,26 @@ public class Screen extends JPanel implements ActionListener, Serializable{
             }
         });
         
+        int numOfGens= 0;
+        int numOfBots = 0;
+        
+        do{
+            numOfGens= Integer.parseInt(JOptionPane.showInputDialog
+        (null, "Input Number of Generations:"));
+            
+        }while(numOfGens == 0);
+        do{
+            numOfBots= Integer.parseInt(JOptionPane.showInputDialog
+        (null, "Input Number of Entities:"));
+            
+        }while(numOfBots == 0);
+        
+        screen.addBoundary(0, 0, screen.SSIZE.width, 0);
+        screen.addBoundary(0, 0, 0, screen.SSIZE.height);
+        
+        screen.addBoundary(0, screen.SSIZE.height, screen.SSIZE.width, 0);
+        screen.addBoundary(screen.SSIZE.width, 0, 0, screen.SSIZE.height);
+        
         screen.addBoundary(50, 430, 50, 50);
         screen.addBoundary(150, 450, 50, 50);
         screen.addBoundary(250, 350, 50, 50);
@@ -301,10 +324,10 @@ public class Screen extends JPanel implements ActionListener, Serializable{
         screen.addBoundary(750, 250, 50, 50);
         screen.addBoundary(850, 150, 50, 50);
         
-        
-        for(int a = 0; a < 5; a++){//generations
-            System.out.println("Generation: " + (a+1));
-            for(int x = 0; x < 8; x++){//entities
+        for(int a = 0; a < numOfGens; a++){//generations
+            screen.generation++;
+            
+            for(int x = 0; x < numOfBots; x++){//entities
                 Bot bot = (Bot) screen.addBot();
                 bot.setRandColor();
                 bot.setRandSpeed();
@@ -348,17 +371,27 @@ public class Screen extends JPanel implements ActionListener, Serializable{
                     b2.move = false;
                     
                     Thread.sleep(2000);
-                    b1.partner(b2);
-                    Bot bb = (Bot) b1.breedEntities(b2);
-                    bb.smartMove();
-
-                    Thread.sleep(10000);
+                    //if(b1.partner(b2)){
+                        Bot bb = (Bot) b1.breedEntities(b2);
+                        bb.smartMove();
+                    //}else{
+                        //b1.smartMove();
+                        //b2.smartMove();
+                    //}
+                    Thread.sleep(1000);
                     if(entities.size()-deadEntities.size() == 1){
                         break;
                     }
                 }
 
             }catch(Exception ex){Screen.log("MAIN EX " + ex);}
+            Bot finalbot = (Bot) entities.get(0);
+            finalbot.stop();
         }
+        
+        Bot finalbot = (Bot) entities.get(0);
+        finalbot.stop();
+        
+        
     }
 }

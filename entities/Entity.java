@@ -24,6 +24,7 @@ public abstract class Entity extends Rectangle{
     public volatile Set<Boundary> spottedbounds = new HashSet<>();
    
     private volatile boolean dead = false, collided = false;
+    public boolean move = false;
     private volatile Color color = Color.yellow;
     private volatile int xDir = 0, yDir = 0, speed = 1;
     protected boolean n,e,s,w;
@@ -226,15 +227,17 @@ public abstract class Entity extends Rectangle{
     public void moveTo(int x, int y){
         //get amount of space needed to move
         stop();
-        
+        System.out.println("Move To Position Start: " + x + " " + y);
         int xa = x-this.x;
-        int axa = xa/Math.abs(xa);
+        int axa = (xa!=0)? xa/Math.abs(xa):0;
         int ax = Math.abs(xa);
+        System.out.println("xa axa ax: " + xa + " " + axa + " " + ax);
+        
         
         int ya = y-this.y;
-        int aya = ya/Math.abs(ya);
+        int aya = (ya!=0)?ya/Math.abs(ya):0;
         int ay = Math.abs(ya);
-        
+        System.out.println("ya aya ay: " + ya + " " + aya + " " + ay);
         
         new Thread(new Runnable(){
             @Override
@@ -244,6 +247,7 @@ public abstract class Entity extends Rectangle{
 
                 stepY(-1,1);
                 stepY(1,1);
+                System.out.println("Move To Position End: " + x + " " + y);
             }
         }).start();
         
@@ -363,6 +367,7 @@ public abstract class Entity extends Rectangle{
         setXDir(0);
         setYDir(0);
         collided = false;
+        move = false;
     }
     
     //Collisions
@@ -413,17 +418,21 @@ public abstract class Entity extends Rectangle{
         int my = Math.abs( (b.y + y)/2 );
         
         final CountDownLatch latch = new CountDownLatch(1);
+        final boolean result[] = new boolean[1];
         new Thread(new Runnable(){
             @Override
             public void run(){
-                moveTo(mx-10,my);
-                b.moveTo(mx+10,my);
+                moveTo(mx,my);
+                b.moveTo(mx,my);
                 
-                try {
-                    Thread.sleep(5000);
-                } catch (InterruptedException ex) {
-                    Logger.getLogger(Entity.class.getName()).log(Level.SEVERE, null, ex);
+                System.out.println(mx + " " + my);
+                while(b.x != mx || x != mx){
+                    if(b.getCollided() || getCollided()){
+                        result[0] = false;
+                        latch.countDown();
+                    }
                 }
+                result[0] = true;
                 latch.countDown();
             }
         }).start();
@@ -431,12 +440,25 @@ public abstract class Entity extends Rectangle{
         try {
             latch.await();
             
+            System.out.println(x + " " + y);
+            System.out.println(b.x + " " + b.y);
+            if(!result[0]){
+                return false;
+            }
+            while(result[0]){
+                if(b.x == mx && x == my){
+                    return true;
+                }
+            }
+            return false;
+            
         } catch (InterruptedException ex) {
             return false;
         }
-        return false;
     }
     public Entity breedEntities(Entity b){
+        
+        
         //create different traits and make entity
         //width
         int highWidth = (this.width >= b.width)? this.width: b.width;
@@ -517,7 +539,7 @@ public abstract class Entity extends Rectangle{
         if(highSightHeight == lowSightHeight){
             newSightHeight  = highSightHeight ;
         }else{
-            newSightHeight  = new Random().nextInt(highSightHeight -(lowSightHeight/2) )+lowSightHeight ;
+            newSightHeight  = new Random().nextInt(highSightHeight -(lowSightHeight) )+lowSightHeight ;
         }
 
         //sight width
@@ -527,7 +549,7 @@ public abstract class Entity extends Rectangle{
         if(highSightWidth == lowSightWidth){
             newSightWidth = highSightWidth;
         }else{
-            newSightWidth = new Random().nextInt(highSightWidth-(lowSightWidth/2))+lowSightWidth;
+            newSightWidth = new Random().nextInt(highSightWidth-(lowSightWidth))+lowSightWidth;
         }
         //make new entity and kill off parents
 

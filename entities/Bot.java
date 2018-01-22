@@ -11,7 +11,6 @@ import java.util.logging.Logger;
 import objects.Boundary;
 
 public class Bot extends Entity{
-    public boolean move = true;
     public Bot(Screen screen){
         super(screen);
     }
@@ -70,9 +69,12 @@ public class Bot extends Entity{
         //}).start();
     }
     public void smartMove(){
+        stop();
         new Thread(new Runnable(){
             @Override
             public void run(){
+                move = true;
+                setCollided(false);
                 int maxsteps = 100, minsteps = 1;
                 while(move){
                     int randsteps = new Random().nextInt(maxsteps-minsteps)+minsteps;
