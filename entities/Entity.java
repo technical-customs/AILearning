@@ -24,10 +24,10 @@ public abstract class Entity extends Rectangle{
     public volatile Set<Boundary> spottedbounds = new HashSet<>();
    
     private volatile boolean dead = false, collided = false;
-    public boolean move = false;
+    public volatile boolean move = false;
     private volatile Color color = Color.yellow;
     private volatile int xDir = 0, yDir = 0, speed = 1;
-    protected boolean n,e,s,w;
+    protected volatile boolean n,e,s,w;
     
     
     private int sMinD = 10, sMaxD = 50, sightD = new Random().nextInt(sMaxD) + sMinD;
@@ -36,6 +36,11 @@ public abstract class Entity extends Rectangle{
     final private SightLine sightline;
     protected volatile boolean spotted;
     
+    
+    //fighting
+    public int h = new Random().nextInt(100)+ 50;
+    public int health = h;
+    public int healthbar = h;
     
     
     
@@ -553,11 +558,14 @@ public abstract class Entity extends Rectangle{
         }
         //make new entity and kill off parents
 
-
+        this.stop();
+        b.stop();
+        
         this.dead = true;
         b.dead = true;
         Screen.deadEntities.add(this);
         Screen.deadEntities.add(b);
+        
         int xx = (this.x + b.x)/2;
         int yy = (this.y + b.y)/2;
 
@@ -570,11 +578,16 @@ public abstract class Entity extends Rectangle{
     
     //Draw and Update
     public void update(){
+        if(health <= 0 ){
+            this.dead = true;
+        }
+        if(!dead){
+            this.move();
+            this.boundCollision();
+            this.entityCollision();
+            sightline.update();
+        }
         
-        this.move();
-        this.boundCollision();
-        this.entityCollision();
-        sightline.update();
         //System.out.println("ENTS: " + getEntities());
     }
     public void drawer(Graphics2D graphics){
@@ -590,6 +603,13 @@ public abstract class Entity extends Rectangle{
         }
         
         sightline.draw(graphics);
+        
+        //health bar
+        graphics.setColor(Color.yellow);
+        graphics.fillRect(this.x+5, this.y+5, healthbar, 5);
+        graphics.setColor(Color.red);
+        graphics.fillRect(this.x+5, this.y+5, health, 5);
+        
         //graphics.drawArc(this.x - (this.width/2), this.y - this.height, this.width, this.height * 2, 0, 180);
     }
     

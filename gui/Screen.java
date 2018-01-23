@@ -7,6 +7,7 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.HeadlessException;
 import java.awt.RenderingHints;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -299,13 +300,17 @@ public class Screen extends JPanel implements ActionListener, Serializable{
         int numOfBots = 0;
         
         do{
-            numOfGens= Integer.parseInt(JOptionPane.showInputDialog
+            try{
+                numOfGens= Integer.parseInt(JOptionPane.showInputDialog
         (null, "Input Number of Generations:"));
+            }catch(HeadlessException | NumberFormatException ex){return;}
             
         }while(numOfGens == 0);
         do{
-            numOfBots= Integer.parseInt(JOptionPane.showInputDialog
+            try{
+                numOfBots= Integer.parseInt(JOptionPane.showInputDialog
         (null, "Input Number of Entities:"));
+            }catch(HeadlessException | NumberFormatException ex){return;}
             
         }while(numOfBots == 0);
         
