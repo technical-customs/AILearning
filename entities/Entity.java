@@ -14,6 +14,7 @@ import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import objects.Blaster;
 import objects.Boundary;
 
 public abstract class Entity extends Rectangle{
@@ -28,7 +29,7 @@ public abstract class Entity extends Rectangle{
     private volatile Color color = Color.yellow;
     private volatile int xDir = 0, yDir = 0, speed = 1;
     protected volatile boolean n,e,s,w;
-    
+    private int oW, oH;
     
     private int sMinD = 10, sMaxD = 50, sightD = new Random().nextInt(sMaxD) + sMinD;
     private int sMinP = 15, sMaxP = 75, sightP = new Random().nextInt(sMaxP) + sMinP;
@@ -38,6 +39,7 @@ public abstract class Entity extends Rectangle{
     
     
     //fighting
+    private Blaster blaster;
     public int h = new Random().nextInt(100)+ 50;
     public int health = h;
     public int healthbar = h;
@@ -91,7 +93,7 @@ public abstract class Entity extends Rectangle{
             if(entity.n){
                 this.width = periph;
                 this.height = dist;
-                this.x = entity.x-(this.width - entity.width)/2;
+                this.x = (entity.x+ entity.width/2) - (this.width/2);
                 this.y = entity.y-this.height;
                 
                 
@@ -100,7 +102,7 @@ public abstract class Entity extends Rectangle{
             if(entity.s){
                 this.width = periph;
                 this.height = dist;
-                this.x = entity.x-(this.width - entity.width)/2;
+                this.x = (entity.x+ entity.width/2) - (this.width/2);
                 this.y = entity.y+entity.height;
                 
                 
@@ -110,8 +112,8 @@ public abstract class Entity extends Rectangle{
             if(entity.e){
                 this.width = dist;
                 this.height = periph;
-                this.x = entity.x + (entity.height);
-                this.y = entity.y-(this.height - entity.height)/2;
+                this.x = entity.x + entity.width;
+                this.y = (entity.y + entity.height/2) - (this.height/2);
                 
                 
                 g.drawRect(this.x,this.y,this.width,this.height);
@@ -120,7 +122,7 @@ public abstract class Entity extends Rectangle{
                 this.width = dist;
                 this.height = periph;
                 this.x = entity.x-this.width;
-                this.y = entity.y-(this.height - entity.height)/2;
+                this.y = (entity.y + entity.height/2) - (this.height/2);
                 
                 
                 g.drawRect(this.x,this.y,this.width,this.height);
@@ -129,26 +131,26 @@ public abstract class Entity extends Rectangle{
         }
     }
     
-    public Entity(Screen screen){
-        super();
-        this.screen = screen;
-        n = true;
-        sightline = new SightLine(this);
-    }
     public Entity(Screen screen, int x, int y, int width, int height){
         super(x,y,width,height);
+        oW = width;
+        oH = height;
         this.screen = screen;
         n = true;
         sightline = new SightLine(this);
+        blaster = new Blaster(this);
     }
     public Entity(Screen screen, int x, int y, int width, int height,
             Color color, int speed, int sightD, int sightP ){
         super(x,y,width,height);
+        oW = width;
+        oH = height;
         this.screen = screen;
         n = true;
         this.color = color;
         this.speed = speed;
         sightline = new SightLine(this,sightD,sightP);
+        blaster = new Blaster(this);
     }
     
     
@@ -368,14 +370,32 @@ public abstract class Entity extends Rectangle{
         this.y += yDir * speed;
     }
     public void stop(){
+        move = false;
         collided = true;
         setXDir(0);
         setYDir(0);
+        try {
+            Thread.sleep(100);
+        } catch (InterruptedException ex) {
+            Logger.getLogger(Entity.class.getName()).log(Level.SEVERE, null, ex);
+        }
         collided = false;
-        move = false;
+        
     }
     
     //Collisions
+    public boolean getN(){
+        return n;
+    }
+    public boolean getS(){
+        return s;
+    }
+    public boolean getE(){
+        return e;
+    }
+    public boolean getW(){
+        return w;
+    }
     public SightLine getSightLine(){
         return sightline;
     }
@@ -431,7 +451,7 @@ public abstract class Entity extends Rectangle{
                 b.moveTo(mx,my);
                 
                 System.out.println(mx + " " + my);
-                while(b.x != mx || x != mx){
+                while(b.x != mx && x != mx){
                     if(b.getCollided() || getCollided()){
                         result[0] = false;
                         latch.countDown();
@@ -444,25 +464,15 @@ public abstract class Entity extends Rectangle{
         
         try {
             latch.await();
-            
-            System.out.println(x + " " + y);
-            System.out.println(b.x + " " + b.y);
-            if(!result[0]){
-                return false;
-            }
-            while(result[0]){
-                if(b.x == mx && x == my){
-                    return true;
-                }
-            }
-            return false;
+            return result[0];
             
         } catch (InterruptedException ex) {
             return false;
         }
     }
     public Entity breedEntities(Entity b){
-        
+        //stepY(-1,1);
+        //b.stepY(-1, 1);
         
         //create different traits and make entity
         //width
@@ -576,6 +586,10 @@ public abstract class Entity extends Rectangle{
 
     }
     
+    public Blaster getBlaster(){
+        return blaster;
+    }
+    
     //Draw and Update
     public void update(){
         if(health <= 0 ){
@@ -586,31 +600,36 @@ public abstract class Entity extends Rectangle{
             this.boundCollision();
             this.entityCollision();
             sightline.update();
+            blaster.update();
         }
         
         //System.out.println("ENTS: " + getEntities());
     }
+    
     public void drawer(Graphics2D graphics){
         if(graphics == null){
             return;
         }
-        
         graphics.setColor(color);
         if(n || s){
+            this.width = oW;
+            this.height = oH;
             graphics.fillRect(this.x, this.y, this.width, this.height);
         }else if(e || w){
-            graphics.fillRect(this.x, this.y, this.height, this.width);
+            this.width = oH;
+            this.height = oW;
+            graphics.fillRect(this.x, this.y, this.width, this.height);
         }
         
         sightline.draw(graphics);
         
+        blaster.draw(graphics);
         //health bar
         graphics.setColor(Color.yellow);
-        graphics.fillRect(this.x+5, this.y+5, healthbar, 5);
+        graphics.fillRect(this.x-5, this.y-5, healthbar, 5);
         graphics.setColor(Color.red);
-        graphics.fillRect(this.x+5, this.y+5, health, 5);
+        graphics.fillRect(this.x-5, this.y-5, health, 5);
         
-        //graphics.drawArc(this.x - (this.width/2), this.y - this.height, this.width, this.height * 2, 0, 180);
     }
     
     @Override

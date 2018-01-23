@@ -219,18 +219,8 @@ public class Screen extends JPanel implements ActionListener, Serializable{
     public synchronized List<Entity> getDeadEntities(){
         return deadEntities;
     }
-    public synchronized Entity addPlayer(){
-        Entity entity = new Player(this);
-        entities.add(entity);
-        return entity;
-    }
     public synchronized Entity addPlayer(int x, int y, int width, int height){
         Entity entity = new Player(this,x,y,width,height);
-        entities.add(entity);
-        return entity;
-    }
-    public synchronized Entity addBot(){
-        Entity entity = new Bot(this);
         entities.add(entity);
         return entity;
     }
@@ -296,29 +286,31 @@ public class Screen extends JPanel implements ActionListener, Serializable{
             }
         });
         
-        int numOfGens= 0;
-        int numOfBots = 0;
+        int numOfGens= 1;
+        int numOfBots = 1;
         
+        /*
         do{
             try{
                 numOfGens= Integer.parseInt(JOptionPane.showInputDialog
         (null, "Input Number of Generations:"));
-            }catch(HeadlessException | NumberFormatException ex){return;}
+            }catch(HeadlessException | NumberFormatException ex){System.exit(0);}
             
         }while(numOfGens == 0);
         do{
             try{
                 numOfBots= Integer.parseInt(JOptionPane.showInputDialog
         (null, "Input Number of Entities:"));
-            }catch(HeadlessException | NumberFormatException ex){return;}
+            }catch(HeadlessException | NumberFormatException ex){System.exit(0);}
             
         }while(numOfBots == 0);
+        */
         
-        screen.addBoundary(0, 0, screen.SSIZE.width, 0);
-        screen.addBoundary(0, 0, 0, screen.SSIZE.height);
+        screen.addBoundary(0, 0, screen.SSIZE.width, 1);
+        screen.addBoundary(0, 0, 1, screen.SSIZE.height);
         
-        screen.addBoundary(0, screen.SSIZE.height, screen.SSIZE.width, 0);
-        screen.addBoundary(screen.SSIZE.width, 0, 0, screen.SSIZE.height);
+        screen.addBoundary(0, screen.SSIZE.height, screen.SSIZE.width, 1);
+        screen.addBoundary(screen.SSIZE.width, 0, 1, screen.SSIZE.height);
         
         screen.addBoundary(50, 430, 50, 50);
         screen.addBoundary(150, 450, 50, 50);
@@ -333,12 +325,11 @@ public class Screen extends JPanel implements ActionListener, Serializable{
             screen.generation++;
             
             for(int x = 0; x < numOfBots; x++){//entities
-                Bot bot = (Bot) screen.addBot();
-                bot.setRandColor();
-                bot.setRandSpeed();
-                bot.setBounds(new Random().nextInt(screen.SSIZE.width-10)+10,
+                Bot bot = (Bot) screen.addBot(new Random().nextInt(screen.SSIZE.width-10)+10,
                     new Random().nextInt(screen.SSIZE.height-10)+10,
                     new Random().nextInt(10)+10,new Random().nextInt(10)+10);
+                bot.setRandColor();
+                bot.setRandSpeed();
             }
 
 
@@ -393,9 +384,22 @@ public class Screen extends JPanel implements ActionListener, Serializable{
             Bot finalbot = (Bot) entities.get(0);
             finalbot.stop();
         }
-        
+        System.out.println("Final Bot");
         Bot finalbot = (Bot) entities.get(0);
         finalbot.stop();
+        Thread.sleep(3000);
+        
+        finalbot.stepX(1, 1);
+        Thread.sleep(3000);
+        Bot finalbot2 = (Bot) screen.addBot(finalbot.x + 150, finalbot.y, 10, 10);
+        Thread.sleep(3000);
+        
+        while(!finalbot2.getDead()){
+            finalbot.getBlaster().shoot();
+        }
+        
+        
+       
         
         
     }

@@ -5,11 +5,6 @@ import java.util.Iterator;
 
 public class Player extends Entity{
     
-    
-    public Player(Screen screen){
-        super(screen);
-        
-    }
     public Player(Screen screen, int x, int y, int width, int height) {
         super(screen, x, y, width, height);
     }

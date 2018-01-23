@@ -11,10 +11,6 @@ import java.util.logging.Logger;
 import objects.Boundary;
 
 public class Bot extends Entity{
-    public Bot(Screen screen){
-        super(screen);
-    }
-
     public Bot(Screen screen, int x, int y, int width, int height) {
         super(screen, x, y, width, height);
     }
@@ -23,6 +19,10 @@ public class Bot extends Entity{
         super(screen,x,y,width,height,color,speed,sightD,sightP);
     }
     
+    
+    private void attack(Entity entity){
+        
+    }
     
     public void spotDecision(){
         if(this.spotted){
@@ -44,7 +44,6 @@ public class Bot extends Entity{
             }
         }
     }
-    
     public void spotBoundary(){
         //new Thread(new Runnable(){
             //@Override
@@ -99,6 +98,7 @@ public class Bot extends Entity{
                         }
                     }
                 }
+                stop();
             }
         }).start();
         
