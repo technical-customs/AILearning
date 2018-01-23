@@ -234,33 +234,34 @@ public abstract class Entity extends Rectangle{
     public void moveTo(int x, int y){
         //get amount of space needed to move
         stop();
-        System.out.println("Move To Position Start: " + x + " " + y);
         int xa = x-this.x;
         int axa = (xa!=0)? xa/Math.abs(xa):0;
         int ax = Math.abs(xa);
-        System.out.println("xa axa ax: " + xa + " " + axa + " " + ax);
         
         
         int ya = y-this.y;
         int aya = (ya!=0)?ya/Math.abs(ya):0;
         int ay = Math.abs(ya);
-        System.out.println("ya aya ay: " + ya + " " + aya + " " + ay);
         
         new Thread(new Runnable(){
             @Override
             public void run(){
-                stepX(axa,ax);
-                stepY(aya,ay);
-
-                stepY(-1,1);
-                stepY(1,1);
-                System.out.println("Move To Position End: " + x + " " + y);
+                
+                
+                if(xa > ya){
+                    stepX(axa,ax);
+                    stepY(aya,ay);
+                }else{
+                    stepY(aya,ay);
+                    stepX(axa,ax);
+                }
+                
             }
         }).start();
         
         
     }
-    public void stepX(int dir, int steps){
+    public boolean stepX(int dir, int steps){
         try{
             double xPos = this.x;
             if(dir != 0){
@@ -272,15 +273,12 @@ public abstract class Entity extends Rectangle{
                     while(this.x < xPos+steps){
                         if(collided){
                             collided = false;
-                            return;
+                            return false;
                         }
                         this.x += 1* speed;
                         Thread.sleep(30);
-                        
-                        
-                        
                     }
-                    //this.xDir = 1;
+                    return true;
                 }
                 if(dir < 0){
                     n = false;
@@ -290,23 +288,22 @@ public abstract class Entity extends Rectangle{
                     while(this.x > xPos-steps){
                         if(collided){
                             collided = false;
-                            return;
+                            return false;
                         }
                         
                         this.x -= 1* speed;
                         Thread.sleep(30);
-                        
-                        
                     }
+                    return true;
                 }
             }
         }catch(InterruptedException ex){
             System.out.println("StepX ex: " + ex);
         }
         
-        
+        return false;
     }
-    public void stepY(int dir, int steps){
+    public boolean stepY(int dir, int steps){
         try{
             double yPos = this.y;
             
@@ -319,12 +316,13 @@ public abstract class Entity extends Rectangle{
                     while(this.y < yPos+steps){
                         if(collided){
                             collided = false;
-                            return;
+                            return false;
                         }
                         this.y += 1* speed;
                         Thread.sleep(30);
                         
                     }
+                    return true;
                 }
                 if(dir < 0){
                     
@@ -335,20 +333,23 @@ public abstract class Entity extends Rectangle{
                     while(this.y > yPos-steps){
                         if(collided){
                             collided = false;
-                            return;
+                            return false;
                         }
                         this.y -= 1* speed;
                         Thread.sleep(30);
                         
                         
                     }
+                    return true;
                 }
             }
             
             
         }catch(InterruptedException ex){
             System.out.println("StepY ex: " + ex);
+            return false;
         }
+        return false;
     }
     public void pushRectX(){
         int xdir;
@@ -433,6 +434,8 @@ public abstract class Entity extends Rectangle{
     public void setCollided(boolean collided){
         this.collided = collided;
     }
+    
+    
     public boolean getDead(){
         return dead;
     }
@@ -586,8 +589,50 @@ public abstract class Entity extends Rectangle{
 
     }
     
+    //fight
     public Blaster getBlaster(){
         return blaster;
+    }
+    public void alignCenter(Entity entity){
+        int xx = entity.x ;
+        int yy = entity.y ;
+        
+        //50 unit or so for now
+        final CountDownLatch latch = new CountDownLatch(1);
+        new Thread(new Runnable(){
+            @Override
+            public void run(){
+                int xDist = x - xx;
+                
+                int yDist = y - yy;
+                
+                int axa = (xDist!=0)? xDist/Math.abs(xDist):0;
+                int aya = (yDist!=0)? yDist/Math.abs(yDist):0;
+                int d = getBlaster().range;
+                if(xDist < yDist){
+                    Boolean b = stepY((yDist<0)?1:-1 ,Math.abs(yDist));
+                    
+                    System.out.println(b);
+                    
+                    while(!stepX((xDist<0)?1:-1 , Math.abs(xDist) - d)){}
+                    
+                }else{
+                    boolean b = stepX((xDist<0)?1:-1 ,Math.abs(xDist));
+                    System.out.println(b);
+                    
+                    while(!stepY((yDist<0)?1:-1 , Math.abs(yDist) - d)){}
+                }
+                latch.countDown();
+            }
+        }).start();
+        
+        try {
+            latch.await();
+        } catch (InterruptedException ex) {
+            Logger.getLogger(Entity.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
+        
     }
     
     //Draw and Update

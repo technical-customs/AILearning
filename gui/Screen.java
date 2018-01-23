@@ -38,10 +38,10 @@ public class Screen extends JPanel implements ActionListener, Serializable{
     public static List<Boundary> boundaries;
     public int generation = 0;
     //SIZE
-    public final int SWIDTH = 400;
-    public final int SHEIGHT = SWIDTH / 16 * 9;
-    public int SSCALE = 3;
-    public Dimension SSIZE = new Dimension(SWIDTH * SSCALE, SHEIGHT * SSCALE);
+    public static final int SWIDTH = 400;
+    public static final int SHEIGHT = SWIDTH / 16 * 9;
+    public static int SSCALE = 3;
+    public static Dimension SSIZE = new Dimension(SWIDTH * SSCALE, SHEIGHT * SSCALE);
     
     //GRAPHICS
     protected BufferStrategy bufferStrategy;
@@ -306,20 +306,20 @@ public class Screen extends JPanel implements ActionListener, Serializable{
         }while(numOfBots == 0);
         */
         
-        screen.addBoundary(0, 0, screen.SSIZE.width, 1);
-        screen.addBoundary(0, 0, 1, screen.SSIZE.height);
+        //screen.addBoundary(0, 0, screen.SSIZE.width, 1);
+        //screen.addBoundary(0, 0, 1, screen.SSIZE.height);
         
-        screen.addBoundary(0, screen.SSIZE.height, screen.SSIZE.width, 1);
-        screen.addBoundary(screen.SSIZE.width, 0, 1, screen.SSIZE.height);
+        //screen.addBoundary(0, screen.SSIZE.height, screen.SSIZE.width, 1);
+        //screen.addBoundary(screen.SSIZE.width, 0, 1, screen.SSIZE.height);
         
-        screen.addBoundary(50, 430, 50, 50);
-        screen.addBoundary(150, 450, 50, 50);
-        screen.addBoundary(250, 350, 50, 50);
-        screen.addBoundary(450, 350, 50, 50);
-        screen.addBoundary(550, 250, 50, 50);
-        screen.addBoundary(650, 350, 50, 50);
-        screen.addBoundary(750, 250, 50, 50);
-        screen.addBoundary(850, 150, 50, 50);
+        //screen.addBoundary(50, 430, 50, 50);
+        //screen.addBoundary(150, 450, 50, 50);
+        //screen.addBoundary(250, 350, 50, 50);
+        //screen.addBoundary(450, 350, 50, 50);
+        //screen.addBoundary(550, 250, 50, 50);
+        //screen.addBoundary(650, 350, 50, 50);
+        //screen.addBoundary(750, 250, 50, 50);
+        //screen.addBoundary(850, 150, 50, 50);
         
         for(int a = 0; a < numOfGens; a++){//generations
             screen.generation++;
@@ -387,16 +387,25 @@ public class Screen extends JPanel implements ActionListener, Serializable{
         System.out.println("Final Bot");
         Bot finalbot = (Bot) entities.get(0);
         finalbot.stop();
-        Thread.sleep(3000);
+        //Thread.sleep(3000);
         
-        finalbot.stepX(1, 1);
-        Thread.sleep(3000);
-        Bot finalbot2 = (Bot) screen.addBot(finalbot.x + 150, finalbot.y, 10, 10);
-        Thread.sleep(3000);
         
-        while(!finalbot2.getDead()){
-            finalbot.getBlaster().shoot();
+        for(int a = 0; a < 20; a++){
+            Bot finalbot2 = (Bot) screen.addBot(new Random().nextInt(screen.SSIZE.width-10)+10,
+                    new Random().nextInt(screen.SSIZE.height-10)+10,
+                    new Random().nextInt(10)+10,new Random().nextInt(10)+10);
+            Thread.sleep(3000);
+            
+            finalbot.alignCenter(finalbot2);
+        
+            Thread.sleep(500);
+        
+            while(!finalbot2.getDead()){
+                finalbot.getBlaster().shoot();
+            }
+            Thread.sleep(3000);
         }
+        
         
         
        
