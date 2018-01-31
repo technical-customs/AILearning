@@ -147,11 +147,11 @@ public class Screen extends JPanel implements ActionListener, Serializable{
         
         mainRunning = true;
         
-        st = new Timer(10,this);
+        st = new Timer(17,this);
         st.setRepeats(true);
         st.start();
         
-        log("Started Thread");
+        //log("Started Thread");
     }
     public synchronized void stop(){
         if(!mainRunning){
@@ -164,7 +164,7 @@ public class Screen extends JPanel implements ActionListener, Serializable{
         
         mainRunning = false;
         st.stop();
-        log("Stopped Thread");
+        //log("Stopped Thread");
     }
     
     //Speed
@@ -202,12 +202,14 @@ public class Screen extends JPanel implements ActionListener, Serializable{
                 entityIter.remove();
                 continue;
             }
+            if(entity.getDead()){
+                continue;
+            }
             entity.drawer(g);
         }
         Iterator<Boundary> boundIter = boundaries.iterator();
         while(boundIter.hasNext()){
             Boundary bound = boundIter.next();
-            
             bound.draw(g);
         }
     }
@@ -286,10 +288,10 @@ public class Screen extends JPanel implements ActionListener, Serializable{
             }
         });
         
-        int numOfGens= 1;
-        int numOfBots = 1;
+        int numOfGens= 0;
+        int numOfBots = 0;
         
-        /*
+        
         do{
             try{
                 numOfGens= Integer.parseInt(JOptionPane.showInputDialog
@@ -304,7 +306,7 @@ public class Screen extends JPanel implements ActionListener, Serializable{
             }catch(HeadlessException | NumberFormatException ex){System.exit(0);}
             
         }while(numOfBots == 0);
-        */
+        
         
         //screen.addBoundary(0, 0, screen.SSIZE.width, 1);
         //screen.addBoundary(0, 0, 1, screen.SSIZE.height);
@@ -340,14 +342,18 @@ public class Screen extends JPanel implements ActionListener, Serializable{
                     Bot b = (Bot) e;
                     
                     
-                    b.smartMove();
-                    //Thread.sleep(1000);
+                    //b.smartMove();
+                    //
                 }
-
-
+                Thread.sleep(5000);
+                Bot b = (Bot) entities.get(0);
+                //b.getBlaster().rounds.get(0).stepY(1, 20);
+                b.getBlaster().shoot(5);
+                
                 Thread.sleep(5000);
                 //get two random entities
-                while(entities.size() > 1){
+                boolean v = entities.size() > 1;
+                while(v){
 
                     int r1 = 0,r2 = 0;
                     do{
@@ -369,12 +375,12 @@ public class Screen extends JPanel implements ActionListener, Serializable{
                     Thread.sleep(2000);
                     //if(b1.partner(b2)){
                         Bot bb = (Bot) b1.breedEntities(b2);
-                        bb.smartMove();
+                        //bb.smartMove();
                     //}else{
                         //b1.smartMove();
                         //b2.smartMove();
                     //}
-                    Thread.sleep(1000);
+                    Thread.sleep(3000);
                     if(entities.size()-deadEntities.size() == 1){
                         break;
                     }
@@ -384,32 +390,9 @@ public class Screen extends JPanel implements ActionListener, Serializable{
             Bot finalbot = (Bot) entities.get(0);
             finalbot.stop();
         }
-        System.out.println("Final Bot");
+       // System.out.println("Final Bot");
         Bot finalbot = (Bot) entities.get(0);
         finalbot.stop();
-        //Thread.sleep(3000);
-        
-        
-        for(int a = 0; a < 20; a++){
-            Bot finalbot2 = (Bot) screen.addBot(new Random().nextInt(screen.SSIZE.width-10)+10,
-                    new Random().nextInt(screen.SSIZE.height-10)+10,
-                    new Random().nextInt(10)+10,new Random().nextInt(10)+10);
-            Thread.sleep(3000);
-            
-            finalbot.alignCenter(finalbot2);
-        
-            Thread.sleep(500);
-        
-            while(!finalbot2.getDead()){
-                finalbot.getBlaster().shoot();
-            }
-            Thread.sleep(3000);
-        }
-        
-        
-        
-       
-        
-        
+        finalbot.getBlaster().shoot(2);
     }
 }

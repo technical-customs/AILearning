@@ -10,7 +10,7 @@ public class Round extends Rectangle{
     private int damage;
     private int speed = 1;
     private int xDir, yDir;
-    private boolean collided, fired;
+    private volatile boolean collided, fired;
     
     public Round(int x, int y, int width, int height){
         super(x,y,width,height);
@@ -26,26 +26,24 @@ public class Round extends Rectangle{
         this.speed = speed;
     }
     
-    public void stepX(int dir, int steps){
+    public synchronized void stepX(int dir, int steps){
         try{
             double xPos = this.x;
             if(dir != 0){
                 if(dir > 0){
-                    while(this.x < xPos+steps){
+                    double xReach = xPos+steps;
+                    while(this.getX() < xReach){
                         if(collided){
                             collided = false;
                             return;
                         }
                         this.x += 1* speed;
                         Thread.sleep(30);
-                        
-                        
-                        
                     }
-                    //this.xDir = 1;
-                }
-                if(dir < 0){
-                    while(this.x > xPos-steps){
+                    collided = true;
+                }else if(dir < 0){
+                    double xReach = xPos-steps;
+                    while(this.getX() > xReach){
                         if(collided){
                             collided = false;
                             return;
@@ -56,6 +54,7 @@ public class Round extends Rectangle{
                         
                         
                     }
+                    collided = true;
                 }
             }
         }catch(InterruptedException ex){
@@ -64,12 +63,13 @@ public class Round extends Rectangle{
         
         
     }
-    public void stepY(int dir, int steps){
+    public synchronized void stepY(int dir, int steps){
         try{
             double yPos = this.y;
             if(dir != 0){
                 if(dir > 0){
-                    while(this.y < yPos+steps){
+                    double yReach = yPos+steps;
+                    while(this.getY() < yReach){
                         if(collided){
                             collided = false;
                             return;
@@ -78,9 +78,10 @@ public class Round extends Rectangle{
                         Thread.sleep(30);
                         
                     }
-                }
-                if(dir < 0){
-                    while(this.y > yPos-steps){
+                    collided = true;
+                }else if(dir < 0){
+                    double yReach = yPos-steps;
+                    while(this.getY() > yReach){
                         if(collided){
                             collided = false;
                             return;
@@ -90,6 +91,8 @@ public class Round extends Rectangle{
                         
                         
                     }
+                    collided = true;
+                    return;
                 }
             }
             
@@ -98,10 +101,30 @@ public class Round extends Rectangle{
             System.out.println("StepY ex: " + ex);
         }
     }
-    
+    public void setXDir(int dir){
+        if(dir > 0){
+            xDir = 1;
+        }
+        if(dir < 0){
+            xDir = -1;
+        }if(dir == 0){
+            xDir = 0;
+       
+        }
+    }
+    public void setYDir(int dir){
+        if(dir > 0){
+            yDir = 1;
+        }
+        if(dir < 0){
+            yDir = -1;
+        }if(dir == 0){
+            yDir = 0;
+        }
+    }
     
     public void collision(){
-        if(fired){
+        if(fired && !collided){
             for(Entity entity: Screen.entities){
                 if(this.intersects(entity)){
                     entity.health-=damage;
@@ -115,18 +138,21 @@ public class Round extends Rectangle{
             }
             
             if(this.x <= 0 - this.width){
-                //collided = true;
+                collided = true;
             }
             if(this.x >= Screen.SSIZE.width + this.width){
-                //collided = true;
+                collided = true;
             }
             if(this.y <= 0 - this.height){
-                //collided = true;
+                collided = true;
             }
             if(this.x >= Screen.SSIZE.height + this.height){
-                //collided = true;
+                collided = true;
             }
         }
+    }
+    public void setCollided(boolean collided){
+        this.collided = collided;
     }
     public boolean getCollided(){
         return collided;

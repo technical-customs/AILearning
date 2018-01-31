@@ -24,7 +24,7 @@ public class Bot extends Entity{
         
     }
     
-    public void spotDecision(){
+    public synchronized void spotDecision(){
         if(this.spotted){
             this.spotted = false;
             
@@ -40,6 +40,11 @@ public class Bot extends Entity{
                 
                 if(this.getSightLine().intersects(entity)){
                     //approach and mate
+                    //stop();
+                    //alignCenter(entity);
+                    
+                    //getBlaster().shoot();
+                    //smartMove();
                 }
             }
         }
@@ -67,7 +72,7 @@ public class Bot extends Entity{
             //}
         //}).start();
     }
-    public void smartMove(){
+    public synchronized void smartMove(){
         stop();
         new Thread(new Runnable(){
             @Override
@@ -105,8 +110,7 @@ public class Bot extends Entity{
     }
     
     @Override
-    protected void entityCollision(){
-        //spotDecision();
+    protected synchronized void entityCollision(){
         spotBoundary();
         
         Iterator<Entity> entityIter = Screen.entities.iterator();
@@ -120,10 +124,11 @@ public class Bot extends Entity{
             if(Screen.deadEntities.contains(entity)){
                 continue;
             }
-            
+            if(this.getSightLine().intersects(entity)){
+                
+            }
             if(this.intersects(entity)){
                 //setCollided(true);
-                
                 //smartMove();
                 if(n){
                     //n = false;

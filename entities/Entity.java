@@ -231,7 +231,7 @@ public abstract class Entity extends Rectangle{
     }
     
     //Movement
-    public void moveTo(int x, int y){
+    public synchronized void moveTo(int x, int y){
         //get amount of space needed to move
         stop();
         int xa = x-this.x;
@@ -273,7 +273,7 @@ public abstract class Entity extends Rectangle{
                     while(this.x < xPos+steps){
                         if(collided){
                             collided = false;
-                            return false;
+                            return true;
                         }
                         this.x += 1* speed;
                         Thread.sleep(30);
@@ -288,7 +288,7 @@ public abstract class Entity extends Rectangle{
                     while(this.x > xPos-steps){
                         if(collided){
                             collided = false;
-                            return false;
+                            return true;
                         }
                         
                         this.x -= 1* speed;
@@ -441,7 +441,7 @@ public abstract class Entity extends Rectangle{
     }
     
     //mutate
-    public boolean partner(Entity b){
+    public synchronized boolean partner(Entity b){
         int mx = Math.abs( (b.x + x)/2 );
         int my = Math.abs( (b.y + y)/2 );
         
@@ -593,12 +593,12 @@ public abstract class Entity extends Rectangle{
     public Blaster getBlaster(){
         return blaster;
     }
-    public void alignCenter(Entity entity){
+    
+    public synchronized void alignCenter(Entity entity){
         int xx = entity.x ;
         int yy = entity.y ;
         
         //50 unit or so for now
-        final CountDownLatch latch = new CountDownLatch(1);
         new Thread(new Runnable(){
             @Override
             public void run(){
@@ -616,31 +616,38 @@ public abstract class Entity extends Rectangle{
                     
                     while(!stepX((xDist<0)?1:-1 , Math.abs(xDist) - d)){}
                     
+                    //face player
+                    if(xx > x){
+                        //face east
+                        stepX(1,1);
+                    }else{
+                        stepX(-1,1);
+                    }
+                    
                 }else{
                     boolean b = stepX((xDist<0)?1:-1 ,Math.abs(xDist));
                     System.out.println(b);
                     
                     while(!stepY((yDist<0)?1:-1 , Math.abs(yDist) - d)){}
+                    if(yy > y){
+                        //face east
+                        stepY(1,-1);
+                    }else{
+                        stepY(-1,-1);
+                    }
                 }
-                latch.countDown();
             }
         }).start();
-        
-        try {
-            latch.await();
-        } catch (InterruptedException ex) {
-            Logger.getLogger(Entity.class.getName()).log(Level.SEVERE, null, ex);
-        }
         
         
     }
     
     //Draw and Update
     public void update(){
-        if(health <= 0 ){
-            this.dead = true;
-        }
         if(!dead){
+            if(health <= 0 ){
+                this.dead = true;
+            }
             this.move();
             this.boundCollision();
             this.entityCollision();
