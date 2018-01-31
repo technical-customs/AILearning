@@ -348,7 +348,7 @@ public class Screen extends JPanel implements ActionListener, Serializable{
                 Thread.sleep(3000);
                 for(Entity e: entities){
                     Bot b = (Bot) e;
-                    b.getBlaster().shoot(50);
+                    b.getBlaster().shoot(10000);
                 }
                 
                 Thread.sleep(10000);

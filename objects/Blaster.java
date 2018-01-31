@@ -11,7 +11,7 @@ public class Blaster {
     private int strength = 5;
     public int range = 200;
     public volatile boolean readyfire;
-    private int numRounds = 500;
+    private int numRounds = 3;
     public volatile List<Round> rounds = new ArrayList<>();
     private int xx, yy, length, width;
     private Entity entity;
@@ -20,13 +20,20 @@ public class Blaster {
         this.entity = entity;
         loadRounds();
     }
-    
+    private Round loadRound(){
+        //for(int x = 0; x < numRounds; x++){
+        Round r = new Round(entity.x,entity.y,width/4,width/4);
+        updateRoundPosition(r);
+        r.setSpeed(strength);
+        r.setDamage(strength);
+        rounds.add(0,r);
+        //}
+        readyfire = true;
+        return r;
+    }
     private void loadRounds(){
         for(int x = 0; x < numRounds; x++){
-            Round r = new Round(entity.x,entity.y,width/4,width/4);
-            r.setSpeed(strength);
-            r.setDamage(strength);
-            rounds.add(r);
+            loadRound();
         }
         readyfire = true;
     }
@@ -35,7 +42,7 @@ public class Blaster {
     public synchronized void shoot(int times){
         
         if(countfires >= rounds.size()){
-            return;
+            //countfires = 0;
         }
         //System.out.println("Times: " + times);
         new Thread(new Runnable(){
@@ -48,11 +55,14 @@ public class Blaster {
                     //if(rIter.hasNext()){
                         try{
                             if(countfires >= rounds.size()){
-                                return;
+                                //loadRounds();
+                                //countfires = 0;
+                                //continue;
                             }
                             
                             //Round round = rIter.next();
-                            Round round = rounds.get(countfires);
+                            //Round round = rounds.get(countfires);
+                            Round round = loadRound();
                             //updateRoundPosition(round);
 
                             round.setFired(true);
