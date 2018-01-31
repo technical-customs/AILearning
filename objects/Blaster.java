@@ -4,14 +4,13 @@ import entities.Entity;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
 public class Blaster {
     private int strength = 5;
     public int range = 200;
-    public boolean readyfire;
+    public volatile boolean readyfire;
     private int numRounds = 500;
     public volatile List<Round> rounds = new ArrayList<>();
     private int xx, yy, length, width;
@@ -34,56 +33,63 @@ public class Blaster {
     
     int countfires = 0;
     public synchronized void shoot(int times){
-        if(!readyfire || times > rounds.size() || rounds.isEmpty()){
+        
+        if(countfires >= rounds.size()){
             return;
         }
-        
-        
-        System.out.println("Times: " + times);
+        //System.out.println("Times: " + times);
         new Thread(new Runnable(){
             @Override
             public void run(){
                 Iterator<Round> rIter = rounds.iterator();
         
                 for(int x = 0; x < times;x++){
-                    if(rIter.hasNext()){
+                    
+                    //if(rIter.hasNext()){
                         try{
-                            if(rounds.isEmpty()){
+                            if(countfires >= rounds.size()){
                                 return;
                             }
+                            
+                            //Round round = rIter.next();
+                            Round round = rounds.get(countfires);
+                            //updateRoundPosition(round);
 
-                            Round round = rIter.next();
-                            countfires++;
-
-                            System.out.println("FIRED");
                             round.setFired(true);
-
-
+                            countfires++;
                             if(entity.getN()){
+                                //System.out.println("FIRED N");
                                 round.stepY(-1, range);
-                                System.out.println("FIRED N");
+                                
                             }
                             if(entity.getS()){
+                                //System.out.println("FIRED S");
                                 round.stepY(1, range);
-                                System.out.println("FIRED S");
+                                
                             }
                             if(entity.getE()){
+                                //System.out.println("FIRED E");
                                 round.stepX(1, range);
-                                System.out.println("FIRED E");
+                                
                             }
                             if(entity.getW()){
+                                //System.out.println("FIRED W");
                                 round.stepX(-1, range);
-                                System.out.println("FIRED W");
+                                
                             }
-                            while(!round.getCollided()){readyfire = false;}
-                            readyfire = true;
+                            //while(!round.getCollided()){}
+                            
+                            Thread.sleep(2000);
+                            //readyfire = true;
+                            //rIter.remove();
+                            
                         }catch(Exception ex){
                             System.out.println("Exception: " + ex);
                             return;
                         }
-                    }
+                    //}
                 }
-                return;
+                
             }
         }).start();
     }
@@ -93,9 +99,8 @@ public class Blaster {
         
         //while(rIter.hasNext()){
             //Round round = rIter.next();
-            if(round.getFired()){
-                return;
-            }
+        if(!round.getFired()){
+            
             if(entity.getN()){
                 round.x = xx;
                 round.y = yy;
@@ -121,19 +126,18 @@ public class Blaster {
                 round.y = yy;
             }
             
-        //}
+        }
     }
     public synchronized void update(){
         Iterator<Round> rIter = rounds.iterator();
         
         while(rIter.hasNext()){
             Round round = rIter.next();
-            if(round.getCollided()){
-                //rIter.remove();
-                continue;
+            if(!round.getCollided()){
+                round.collision();
+                updateRoundPosition(round);
             }
-            round.collision();
-            updateRoundPosition(round);
+            
         }
         
     }
@@ -142,6 +146,11 @@ public class Blaster {
         
         while(rIter.hasNext()){
             Round r = rIter.next();
+            
+            if(r.getCollided()){
+                //rIter.remove();
+                //continue;
+            }
             r.draw(g);
         }
         

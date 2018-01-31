@@ -38,7 +38,7 @@ public class Screen extends JPanel implements ActionListener, Serializable{
     public static List<Boundary> boundaries;
     public int generation = 0;
     //SIZE
-    public static final int SWIDTH = 400;
+    public static final int SWIDTH = 200;
     public static final int SHEIGHT = SWIDTH / 16 * 9;
     public static int SSCALE = 3;
     public static Dimension SSIZE = new Dimension(SWIDTH * SSCALE, SHEIGHT * SSCALE);
@@ -342,18 +342,19 @@ public class Screen extends JPanel implements ActionListener, Serializable{
                     Bot b = (Bot) e;
                     
                     
-                    //b.smartMove();
+                    b.smartMove();
                     //
                 }
-                Thread.sleep(5000);
-                Bot b = (Bot) entities.get(0);
-                //b.getBlaster().rounds.get(0).stepY(1, 20);
-                b.getBlaster().shoot(5);
+                Thread.sleep(3000);
+                for(Entity e: entities){
+                    Bot b = (Bot) e;
+                    b.getBlaster().shoot(50);
+                }
                 
-                Thread.sleep(5000);
+                Thread.sleep(10000);
                 //get two random entities
                 boolean v = entities.size() > 1;
-                while(v){
+                while(!v){
 
                     int r1 = 0,r2 = 0;
                     do{
@@ -375,12 +376,16 @@ public class Screen extends JPanel implements ActionListener, Serializable{
                     Thread.sleep(2000);
                     //if(b1.partner(b2)){
                         Bot bb = (Bot) b1.breedEntities(b2);
-                        //bb.smartMove();
+                        bb.smartMove();
+                        
+                        Thread.sleep(2000);
+                        
+                        bb.getBlaster().shoot(10);
                     //}else{
                         //b1.smartMove();
                         //b2.smartMove();
                     //}
-                    Thread.sleep(3000);
+                    Thread.sleep(10000);
                     if(entities.size()-deadEntities.size() == 1){
                         break;
                     }
@@ -388,11 +393,11 @@ public class Screen extends JPanel implements ActionListener, Serializable{
 
             }catch(Exception ex){Screen.log("MAIN EX " + ex);}
             Bot finalbot = (Bot) entities.get(0);
-            finalbot.stop();
+            //finalbot.stop();
         }
        // System.out.println("Final Bot");
         Bot finalbot = (Bot) entities.get(0);
-        finalbot.stop();
-        finalbot.getBlaster().shoot(2);
+        //finalbot.stop();
+        //finalbot.getBlaster().shoot(2);
     }
 }

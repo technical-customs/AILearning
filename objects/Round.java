@@ -32,32 +32,32 @@ public class Round extends Rectangle{
             if(dir != 0){
                 if(dir > 0){
                     double xReach = xPos+steps;
-                    while(this.getX() < xReach){
+                    while(this.getX() <= xReach){
                         if(collided){
                             collided = false;
                             return;
                         }
                         this.x += 1* speed;
-                        Thread.sleep(30);
+                        Thread.sleep(17);
                     }
                     collided = true;
+                    //System.out.println("COLLIDED");
                 }else if(dir < 0){
                     double xReach = xPos-steps;
-                    while(this.getX() > xReach){
+                    while(this.getX() >= xReach){
                         if(collided){
                             collided = false;
                             return;
                         }
                         
                         this.x -= 1* speed;
-                        Thread.sleep(30);
-                        
-                        
+                        Thread.sleep(17);
                     }
                     collided = true;
+                    //System.out.println("COLLIDED");
                 }
             }
-        }catch(InterruptedException ex){
+        }catch(Exception ex){
             System.out.println("StepX ex: " + ex);
         }
         
@@ -65,39 +65,40 @@ public class Round extends Rectangle{
     }
     public synchronized void stepY(int dir, int steps){
         try{
-            double yPos = this.y;
+            double yPos = this.getY();
             if(dir != 0){
                 if(dir > 0){
                     double yReach = yPos+steps;
-                    while(this.getY() < yReach){
+                    while(this.getY() <= yReach){
                         if(collided){
                             collided = false;
                             return;
                         }
                         this.y += 1* speed;
-                        Thread.sleep(30);
+                        Thread.sleep(17);
                         
                     }
                     collided = true;
+                    //System.out.println("COLLIDED");
                 }else if(dir < 0){
                     double yReach = yPos-steps;
-                    while(this.getY() > yReach){
+                    while(this.getY() >= yReach){
                         if(collided){
                             collided = false;
                             return;
                         }
                         this.y -= 1* speed;
-                        Thread.sleep(30);
+                        Thread.sleep(17);
                         
                         
                     }
                     collided = true;
-                    return;
+                    //System.out.println("COLLIDED");
                 }
             }
             
             
-        }catch(InterruptedException ex){
+        }catch(Exception ex){
             System.out.println("StepY ex: " + ex);
         }
     }
@@ -124,7 +125,7 @@ public class Round extends Rectangle{
     }
     
     public void collision(){
-        if(fired && !collided){
+        if(fired){
             for(Entity entity: Screen.entities){
                 if(this.intersects(entity)){
                     entity.health-=damage;
@@ -164,7 +165,10 @@ public class Round extends Rectangle{
         this.fired = fired;
     }
     public void draw(Graphics2D g){
-        g.setColor(Color.red);
-        g.fillRect(x, y, width, height);
+        //if(!collided){
+            g.setColor(Color.red);
+            g.fillRect(x, y, width, height);
+        
+        
     }
 }
